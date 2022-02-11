@@ -15,17 +15,22 @@ TIMEZONE='America/Chicago' # Set which region on Earth the user is
 KEYMAP='us' # Define keyboard layout: us or br-abnt2 (include more options)
 PKG_LIST='base-system git grub vim curl' # Install this packages (add more to your taste)
 DEV_DISK_NAME='/dev/sda'
+DEV_BOOT_PARTITION=${DEV_DISK_NAME}1
 DEV_ROOT_PARTITION=${DEV_DISK_NAME}2
 MOUNT_PATH='/mnt/sdcard'
 ROOTFS_TARBALL='/home/me/Downloads/void-rpi3-PLATFORMFS-20210930.tar.xz' # Path to rootfs tarball.
 
-fdisk $DEV_DISK_NAME < fdisk-script # create partitions according to fdisk-script
+sfdisk --wipe-partitions always $DEV_DISK_NAME < fdisk-script # create partitions according to fdisk-script
 
+mkfs.fat $DEV_BOOT_PARTITION # create boot filesystem
 mkfs.ext4 -O '^has_journal' $DEV_ROOT_PARTITION # create ext4 filesystem on the root partition (with journaling)
 #mkswap $DEV_SWAP_PARTITION # make the swap space on the second partition
 
 # Mount the root partition
 mount $DEV_ROOT_PARTITION $MOUNT_PATH
+mkdir -p $MOUNT_PATH/boot
+mount $DEV_BOOT_PARTITION $MOUNT_PATH/boot
+
 
 # Extract rootfs to root partition
 tar xvfJp $ROOTFS_TARBALL -C $MOUNT_PATH
@@ -98,6 +103,7 @@ cat /home/$USERNAME/.ssh/id_rsa.pub > $MOUNT_PATH/home/$USERNAME/.ssh/authorized
 # Clean up the emulation thing
 rm $MOUNT_PATH/bin/qemu-aarch64-static
 
+umount $MOUNT_PATH/boot
 umount $MOUNT_PATH
 
 echo "Done"
