@@ -19,6 +19,7 @@ DEV_BOOT_PARTITION=${DEV_DISK_NAME}1
 DEV_ROOT_PARTITION=${DEV_DISK_NAME}2
 MOUNT_PATH='/mnt/sdcard'
 ROOTFS_TARBALL='/home/me/Downloads/void-rpi3-PLATFORMFS-20210930.tar.xz' # Path to rootfs tarball.
+PASSWORD='password' # Password for your user account
 
 sfdisk --wipe-partitions always $DEV_DISK_NAME < fdisk-script # create partitions according to fdisk-script
 
@@ -71,8 +72,8 @@ chroot $MOUNT_PATH /bin/bash -c "
 # Make our user and user group
 /bin/groupadd $USERNAME
 /bin/useradd -g users -G wheel,storage,audio $USERNAME
-# Set our password (: is a no-op in bash apparently)
-until passwd $USERNAME; do :; done
+# Set our password
+echo '$USERNAME:$PASSWORD' | chpasswd
 # We don't need grub and I couldn't make it just work :shrug:
 #grub-install $DEV_DISK_NAME # Install grub
 #update-grub
