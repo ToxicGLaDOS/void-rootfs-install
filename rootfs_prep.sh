@@ -13,7 +13,7 @@ REPO="https://repo-us.voidlinux.org"
 HARDWARECLOCK='UTC' # Set RTC (Real Time Clock) to UTC or localtime
 TIMEZONE='America/Chicago' # Set which region on Earth the user is
 KEYMAP='us' # Define keyboard layout: us or br-abnt2 (include more options)
-PKG_LIST='base-system git grub vim curl' # Install this packages (add more to your taste)
+PKG_LIST='base-system openntpd git grub vim curl' # Install this packages (add more to your taste)
 DEV_DISK_NAME='/dev/sda'
 DEV_BOOT_PARTITION=${DEV_DISK_NAME}1
 DEV_ROOT_PARTITION=${DEV_DISK_NAME}2
@@ -39,15 +39,20 @@ tar xvfJp $ROOTFS_TARBALL -C $MOUNT_PATH
 # Copy emulation binary over so we can chroot from x86 to aarch64
 cp /bin/qemu-aarch64-static $MOUNT_PATH/bin/
 
-# Pre-install some packages
-env XBPS_ARCH=aarch64 xbps-install -Sy -r $MOUNT_PATH -R "$REPO" $PKG_LIST
+# Set up the xbps repo
+echo "repository=${REPO}" > $MOUNT_PATH/etc/xbps.d/00-repository-main.conf
+
+# Run a sync and update
+env XBPS_ARCH=aarch64 xbps-install -Suy -r $MOUNT_PATH
+
+# Pre-install some packages this can't be combined into the previous xbps-install
+env XBPS_ARCH=aarch64 xbps-install -y -r $MOUNT_PATH $PKG_LIST
 
 # Set the hostname of the machine
 echo $HOSTNAME > $MOUNT_PATH/etc/hostname
 
 # Set some locale stuff
 cat >> $MOUNT_PATH/etc/rc.conf <<EOF
-HARDWARECLOCK="${HARDWARECLOCK}"
 TIMEZONE="${TIMEZONE}"
 KEYMAP="${KEYMAP}"
 EOF
@@ -66,6 +71,9 @@ cp -a /var/db/xbps/keys/* $MOUNT_PATH/var/db/xbps/keys/
 # Copy our resolv.conf over so we can run xbps commands in the chroot before inital boot
 # after inital boot we'll have dhcp dealing with all that
 cp /etc/resolv.conf $MOUNT_PATH/etc/
+
+# Set up ntpd so our clock is right which prevents cert verification errors
+ln -s /etc/sv/openntpd $MOUNT_PATH/etc/runit/runsvdir/default/
 
 # Run a bunch of stuff in the chroot
 chroot $MOUNT_PATH /bin/bash -c "
