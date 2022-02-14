@@ -72,6 +72,17 @@ cp -a /var/db/xbps/keys/* $MOUNT_PATH/var/db/xbps/keys/
 # after inital boot we'll have dhcp dealing with all that
 cp /etc/resolv.conf $MOUNT_PATH/etc/
 
+# Allow wheel group users to use sudo
+sed -ie 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/g' $MOUNT_PATH/etc/sudoers
+
+# Disable password auth
+sed -ie 's/#PasswordAuthentication yes/PasswordAuthentication no/g' $MOUNT_PATH/etc/ssh/sshd_config
+sed -ie 's/#KbdInteractiveAuthentication yes/KbdInteractiveAuthentication no/g' $MOUNT_PATH/etc/ssh/sshd_config
+
+# Activate dhcp and ssh services for when we boot
+ln -s /etc/sv/dhcpcd $MOUNT_PATH/etc/runit/runsvdir/default/
+ln -s /etc/sv/sshd $MOUNT_PATH/etc/runit/runsvdir/default/
+
 # Set up ntpd so our clock is right which prevents cert verification errors
 ln -s /etc/sv/openntpd $MOUNT_PATH/etc/runit/runsvdir/default/
 
@@ -85,16 +96,8 @@ echo '$USERNAME:$PASSWORD' | chpasswd
 # We don't need grub and I couldn't make it just work :shrug:
 #grub-install $DEV_DISK_NAME # Install grub
 #update-grub
-# Activate dhcp and ssh services for when we boot
-ln -s /etc/sv/dhcpcd /etc/runit/runsvdir/default/
-ln -s /etc/sv/sshd /etc/runit/runsvdir/default/
 # Set up the xbps repo. Importantly, we have aarch64 at the end
 echo 'repository=${REPO}/current/aarch64' > /etc/xbps.d/00-repository-main.conf
-# Disable password auth
-sed -ie 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
-sed -ie 's/#KbdInteractiveAuthentication yes/KbdInteractiveAuthentication no/g' /etc/ssh/sshd_config
-# Allow wheel group users to use sudo
-sed -ie 's/# %wheel ALL=(ALL) ALL/%wheel ALL=(ALL) ALL/g' /etc/sudoers
 # Not sure this is necessary, but it's listed here:
 # https://docs.voidlinux.org/installation/guides/chroot.html
 xbps-install -Suy xbps
