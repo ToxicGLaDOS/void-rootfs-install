@@ -89,16 +89,16 @@ ln -s /etc/sv/openntpd $MOUNT_PATH/etc/runit/runsvdir/default/
 # Run a bunch of stuff in the chroot
 chroot $MOUNT_PATH /bin/bash -c "
 # Make our user and user group
-/bin/groupadd $USERNAME
-/bin/useradd -g users -G wheel,storage,audio $USERNAME
+groupadd -g 1000 $USERNAME
+useradd -g $USERNAME -G wheel $USERNAME
+
 # Set our password
-echo '$USERNAME:$PASSWORD' | chpasswd
-# We don't need grub and I couldn't make it just work :shrug:
-#grub-install $DEV_DISK_NAME # Install grub
-#update-grub
-# Set up the xbps repo. Importantly, we have aarch64 at the end
-echo 'repository=${REPO}/current/aarch64' > /etc/xbps.d/00-repository-main.conf
-# Not sure this is necessary, but it's listed here:
+echo -e '$PASSWORD
+$PASSWORD' | passwd $USERNAME
+
+# Remove the default password from the root account
+passwd --delete root
+
 # https://docs.voidlinux.org/installation/guides/chroot.html
 xbps-install -Suy xbps
 xbps-install -uy
