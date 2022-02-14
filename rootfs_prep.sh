@@ -99,10 +99,10 @@ $PASSWORD' | passwd $USERNAME
 # Remove the default password from the root account
 passwd --delete root
 
+# The void docs recommend running some more xbps-install commands
+# but they don't seem neccessary if you run both two xbps-installs
+# outside the chroot with the -r command.
 # https://docs.voidlinux.org/installation/guides/chroot.html
-xbps-install -Suy xbps
-xbps-install -uy
-xbps-install -y base-system
 xbps-remove -y base-voidstrap
 xbps-reconfigure -fa
 "
