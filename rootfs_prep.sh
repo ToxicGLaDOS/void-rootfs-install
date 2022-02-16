@@ -9,7 +9,7 @@ fi
 
 USERNAME='user' # Set your username
 HOSTNAME='hostname' # Pick your favorite name
-REPO="https://repo-us.voidlinux.org"
+REPO="https://repo-us.voidlinux.org/current/aarch64"
 HARDWARECLOCK='UTC' # Set RTC (Real Time Clock) to UTC or localtime
 TIMEZONE='America/Chicago' # Set which region on Earth the user is
 KEYMAP='us' # Define keyboard layout: us or br-abnt2 (include more options)
