@@ -34,9 +34,12 @@ mount $DEV_ROOT_PARTITION $MOUNT_PATH
 mkdir -p $MOUNT_PATH/boot
 mount $DEV_BOOT_PARTITION $MOUNT_PATH/boot
 
-
 # Extract rootfs to root partition
 tar xvfJp $ROOTFS_TARBALL -C $MOUNT_PATH
+
+# This is all default except the cgroup_memory=1 cgroup_enable=memory.
+# We need that for k3s
+echo 'root=/dev/mmcblk0p2 rw rootwait console=ttyAMA0,115200 kgdboc=ttyAMA0,115200 console=tty1 smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 loglevel=4 elevator=noop cgroup_memory=1 cgroup_enable=memory' > $MOUNT_PATH/boot/cmdline.txt
 
 # Copy emulation binary over so we can chroot from x86 to aarch64
 cp /bin/qemu-aarch64-static $MOUNT_PATH/bin/
