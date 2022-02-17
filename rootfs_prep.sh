@@ -13,7 +13,9 @@ REPO="https://repo-us.voidlinux.org/current/aarch64"
 HARDWARECLOCK='UTC' # Set RTC (Real Time Clock) to UTC or localtime
 TIMEZONE='America/Chicago' # Set which region on Earth the user is
 KEYMAP='us' # Define keyboard layout: us or br-abnt2 (include more options)
-PKG_LIST='base-system openntpd git grub vim curl' # Install this packages (add more to your taste)
+# In my expirence chrony allows for big jumps without any interaction and
+# openntpd doesn't, which is important because the pi always starts with Jan 1 1970 as the time
+PKG_LIST='base-system chrony git grub vim curl' # Install this packages (add more to your taste)
 DEV_DISK_NAME='/dev/sda'
 DEV_BOOT_PARTITION=${DEV_DISK_NAME}1
 DEV_ROOT_PARTITION=${DEV_DISK_NAME}2
@@ -84,7 +86,7 @@ ln -s /etc/sv/dhcpcd $MOUNT_PATH/etc/runit/runsvdir/default/
 ln -s /etc/sv/sshd $MOUNT_PATH/etc/runit/runsvdir/default/
 
 # Set up ntpd so our clock is right which prevents cert verification errors
-ln -s /etc/sv/openntpd $MOUNT_PATH/etc/runit/runsvdir/default/
+ln -s /etc/sv/ntpd $MOUNT_PATH/etc/runit/runsvdir/default/
 
 # Run a bunch of stuff in the chroot
 chroot $MOUNT_PATH /bin/bash -c "
